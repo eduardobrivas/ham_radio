@@ -32,7 +32,7 @@
     var repetidoras = [
         {nome: 'PY2KDK', freq: '145.450', desloc: '-0.600', tone: '77.0', lat: -22.89344675, lng: -48.48911254},
         {nome: 'PY5VET', freq: '145.430', desloc: '-0.600', tone: '88.5', lat: -23.27665662, lng: -49.82754017},
-        {nome: 'PY2KRU', freq: '145.390', desloc: '-0.600', tone: 'ST', lat: -23.97963259, lng: -48.88588453},
+        {nome: 'PY2KRU', freq: '145.390', desloc: '-0.600', tone: '-', lat: -23.97963259, lng: -48.88588453},
         {nome: 'PY2KAD', freq: '145.350', desloc: '-0.600', tone: '88.5', lat: -23.10307567, lng: -48.36106404}
         // Adicione mais repetidoras conforme necessário
     ];
@@ -41,9 +41,9 @@
         L.marker([repetidora.lat, repetidora.lng]).addTo(map)
             .bindPopup('Nome: ' + repetidora.nome + '<br>' +
                        'Frequência: ' + repetidora.freq + '<br>' +
-                       'Deslocamento: ' + repetidora.desloc + '<br>' +
+                       'Offset: ' + repetidora.desloc + '<br>' +
                        'Tone: ' + repetidora.tone + '<br>' +
-                       'Distância: ' + calculaDistancia(-24.1339, -49.8192, repetidora.lat, repetidora.lng) + ' km');
+                       'Distância do QTH: ' + calculaDistancia(-24.1339, -49.8192, repetidora.lat, repetidora.lng) + ' km');
     });
 
     // Função para calcular a distância entre dois pontos geográficos
