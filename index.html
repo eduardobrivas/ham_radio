@@ -7,7 +7,24 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
-            height: 500px;
+            height: 800px;
+            width: 75%;
+            float: left;
+        }
+        #info {
+            width: 23%;
+            float: left;
+            padding-left: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            margin-bottom: 10px;
+        }
+        h3 {
+            margin-top: 0;
         }
     </style>
 </head>
@@ -15,20 +32,58 @@
 
 <h3>Mapa de Repetidoras e QTH</h3>
 <div id="map"></div>
+<div id="info">
+    <h4>Repetidoras</h4>
+    <ul id="repeaterList"></ul>
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    var map = L.map('map').setView([-24.1339, -49.8192], 8); // Define as coordenadas do QTH e o nível de zoom
+    var map = L.map('map').setView([-24.1339, -49.8192], 8); // Coordenadas do QTH
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Alternativa de camadas
+    var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Adiciona marcador para o QTH
-    var qthMarker = L.marker([-24.1339, -49.8192]).addTo(map);
+    var satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    });
+
+    L.control.layers({
+        'Mapa': baseLayer,
+        'Satélite': satelliteLayer
+    }).addTo(map);
+
+    // Ícones personalizados
+    var qthIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/619/619159.png',
+        iconSize: [40, 40], // Tamanho do ícone
+        iconAnchor: [20, 40], // Ponto de ancoragem
+        popupAnchor: [0, -40]
+    });
+
+    var repeaterIcon = L.icon({
+        iconUrl: 'https://ovarro.com/content-media/assigned/33811/NoTitles_Colour_Broadcast.svg',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+    });
+
+    // Adiciona o marcador QTH
+    var qthMarker = L.marker([-24.1339, -49.8192], { icon: qthIcon }).addTo(map);
     qthMarker.bindPopup('QTH: PU5RIV').openPopup();
 
-    // Adiciona marcadores para representar as repetidoras
+    // Círculo de cobertura ao redor do QTH
+    var circle = L.circle([-24.1339, -49.8192], {
+        color: 'blue',
+        fillColor: '#30f',
+        fillOpacity: 0.2,
+        radius: 20000 // Raio de 20km
+    }).addTo(map);
+
+    // Lista de repetidoras
     var repetidoras = [
         {nome: 'PY2KDK', freq: '145.450', desloc: '-0.600', tone: '77.0', lat: -22.89344675, lng: -48.48911254},
         {nome: 'PY5VET', freq: '145.430', desloc: '-0.600', tone: '88.5', lat: -23.27665662, lng: -49.82754017},
@@ -37,18 +92,32 @@
         // Adicione mais repetidoras conforme necessário
     ];
 
+    var repeaterList = document.getElementById('repeaterList');
+
     repetidoras.forEach(function(repetidora) {
-        L.marker([repetidora.lat, repetidora.lng]).addTo(map)
-            .bindPopup('Nome: ' + repetidora.nome + '<br>' +
-                       'Frequência: ' + repetidora.freq + '<br>' +
-                       'Offset: ' + repetidora.desloc + '<br>' +
-                       'Tone: ' + repetidora.tone + '<br>' +
-                       'Distância do QTH: ' + calculaDistancia(-24.1339, -49.8192, repetidora.lat, repetidora.lng) + ' km');
+        // Adiciona os marcadores
+        var marker = L.marker([repetidora.lat, repetidora.lng], { icon: repeaterIcon }).addTo(map)
+            .bindPopup(
+                'Nome: ' + repetidora.nome + '<br>' +
+                'Frequência: ' + repetidora.freq + '<br>' +
+                'Offset: ' + repetidora.desloc + '<br>' +
+                'Tone: ' + repetidora.tone + '<br>' +
+                'Distância do QTH: ' + calculaDistancia(-24.1339, -49.8192, repetidora.lat, repetidora.lng) + ' km'
+            );
+
+        // Adiciona os itens à lista
+        var listItem = document.createElement('li');
+        listItem.innerHTML = '<a href="#">' + repetidora.nome + '</a>';
+        listItem.addEventListener('click', function() {
+            map.setView([repetidora.lat, repetidora.lng], 10);
+            marker.openPopup();
+        });
+        repeaterList.appendChild(listItem);
     });
 
     // Função para calcular a distância entre dois pontos geográficos
     function calculaDistancia(lat1, lon1, lat2, lon2) {
-        var R = 6371; // raio da Terra em km
+        var R = 6371; // Raio da Terra em km
         var dLat = (lat2 - lat1) * (Math.PI / 180);
         var dLon = (lon2 - lon1) * (Math.PI / 180);
         var a =
